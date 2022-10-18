@@ -3,10 +3,30 @@ const mongoose = require('mongoose');
 const Joi = require('joi')
 
 const userSchema = new mongoose.Schema({
-    name: String,
-    email: String,
-    password: String,
-    admin: Boolean
+    name: {
+        type: String,
+        required: true,
+    },
+    username: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        required: true,
+    },
+    phone: {
+        type: String,
+        required: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    admin: Boolean,
+    posts : [
+        {type: mongoose.Schema.Types.ObjectId,ref:'Post'}
+    ]
 });
 
 const User = mongoose.model('User', userSchema);
@@ -18,7 +38,7 @@ exports.signupSchema = Joi.object(
             .required()
             .min(3),
         email: Joi.string()
-            .required()
+            .required().email()
             .min(5),
         password: Joi.string()
             .required()

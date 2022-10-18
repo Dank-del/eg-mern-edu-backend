@@ -14,7 +14,7 @@ app.use(cookieparser())          //necessry for parsing token cookie
 
 
 
-mongoose.connect("mongodb://0.0.0.0:27017/assign_1", {
+mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
