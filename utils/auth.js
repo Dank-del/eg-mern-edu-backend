@@ -11,7 +11,8 @@ const ejwt = require('express-jwt-enhanced')(ejwtOptions);
 
 //auth middleware
 async function auth(req,res,next){
-    var ret = await ejwt.get()
+    var ret = await ejwt.get();
+    // console.log(ret);
     ret && ret.loggedin ? next() : res.json({err:'auth failed'})
 }
 

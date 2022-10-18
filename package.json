@@ -18,5 +18,8 @@
     "express-jwt-enhanced": "^1.2.4",
     "joi": "^17.6.0",
     "mongoose": "^6.5.4"
+  },
+  "devDependencies": {
+    "eslint": "^8.25.0"
   }
 }

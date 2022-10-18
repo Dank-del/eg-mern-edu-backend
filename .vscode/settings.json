@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
         "ejwt"
-    ]
+    ],
+    "eslint.enable": true
 }

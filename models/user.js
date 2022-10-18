@@ -40,9 +40,11 @@ exports.signupSchema = Joi.object(
         email: Joi.string()
             .required().email()
             .min(5),
+        username: Joi.string().required().min(3),
         password: Joi.string()
             .required()
             .min(6),
+        phone: Joi.number().required(),
         admin: Joi.bool()
             .default(false),
         master_key: Joi.string().optional()

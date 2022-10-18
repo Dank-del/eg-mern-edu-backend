@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { User, signupSchema, loginSchema } = require('../models/user');
 const validator = require('express-joi-validation').createValidator({})
-const { ejwt } = require('../utils/auth');
+const { ejwt, auth } = require('../utils/auth');
 
 router.post('/signup', validator.body(signupSchema), async (req, res) => {
     let user = await User.findOne({ email: req.body.email });
     if (user) return res.status(400).json({ message: "user exists already" })
     
-    admin = null;
+    var admin = null;
     if (req.body.master_key) {
         if (req.body.master_key != process.env.ADMIN_KEY) return res.status(400).json({ message: "master key is wrong" })
         admin = req.body.admin;
@@ -17,6 +17,8 @@ router.post('/signup', validator.body(signupSchema), async (req, res) => {
     user = new User({
         name: req.body.name,
         email: req.body.email,
+        username: req.body.username,
+        phone: req.body.phone,
         password: req.body.password,
         admin: admin
     });
@@ -26,13 +28,13 @@ router.post('/signup', validator.body(signupSchema), async (req, res) => {
     res.json(user.toJSON())
 })
 
-router.post('/login', validator.body(loginSchema), async (req, res) => {
+router.post('/login', auth, validator.body(loginSchema), async (req, res) => {
     let user = await User.findOne({ email: req.body.email })
     if (!user) return res.status(404).json({ message: "user not found" });
 
     await ejwt.set({
         loggedin: true,
-        user: user.toJSON()
+        user_id: user.id
     });
 
     res.json({
@@ -42,5 +44,10 @@ router.post('/login', validator.body(loginSchema), async (req, res) => {
         csrf_token: ejwt.data.csrf_token
     })
 })
+
+router.get('/logout', auth, async (req, res) => {
+    await ejwt.unset();
+    res.json({ message: 'logout successful' });
+});
 
 module.exports = router;
