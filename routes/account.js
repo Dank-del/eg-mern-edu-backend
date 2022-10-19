@@ -7,7 +7,6 @@ const { ejwt, auth } = require('../utils/auth');
 router.post('/signup', validator.body(signupSchema), async (req, res) => {
     let user = await User.findOne({ email: req.body.email });
     if (user) return res.status(400).json({ message: "user exists already" })
-    
     var admin = null;
     if (req.body.master_key) {
         if (req.body.master_key != process.env.ADMIN_KEY) return res.status(400).json({ message: "master key is wrong" })
@@ -28,7 +27,7 @@ router.post('/signup', validator.body(signupSchema), async (req, res) => {
     res.json(user.toJSON())
 })
 
-router.post('/login', auth, validator.body(loginSchema), async (req, res) => {
+router.post('/login', validator.body(loginSchema), async (req, res) => {
     let user = await User.findOne({ email: req.body.email })
     if (!user) return res.status(404).json({ message: "user not found" });
 
@@ -50,4 +49,5 @@ router.get('/logout', auth, async (req, res) => {
     res.json({ message: 'logout successful' });
 });
 
-module.exports = router;
+exports.userRouter = router;
+exports.validator = validator;

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ejwt, auth } = require('../utils/auth');
 const { Post, postSchema } = require('../models/post');
+const { validator } = require('./account');
 
 router.get('/', async (req, res) => {
     const posts = await Post.find({});
@@ -9,12 +10,17 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
-    const post = await Post.findById(req.params.id);
+    var post = null;
+    try {
+        post = await Post.findById(req.params.id);
+    } catch (err) {
+        return res.status(404).json({ message: "post not found" });
+    }
     if (!post) return res.status(404).json({ message: "post not found" });
     res.json(post.toJSON());
 });
 
-router.post('/new', auth, postSchema, async (req, res) => {
+router.post('/new', auth, validator.body(postSchema), async (req, res) => {
     const ret = await ejwt.get();
     const post = new Post({
         title: req.body.title,
@@ -25,9 +31,14 @@ router.post('/new', auth, postSchema, async (req, res) => {
     res.json(post.toJSON())
 })
 
-router.post('/edit/:id', auth, postSchema, async (req, res) => {
+router.post('/edit/:id', auth, validator.body(postSchema), async (req, res) => {
     const ret = await ejwt.get();
-    const post = await Post.findById(req.params.id);
+    var post = null;
+    try {
+        post = await Post.findById(req.params.id);
+    } catch (err) {
+        return res.status(404).json({ message: "post not found" });
+    }
     if (!post) return res.status(404).json({ message: "post not found" });
     if (post.user_id != ret.user_id) return res.status(401).json({ message: "unauthorized" });
     post.title = req.body.title;
@@ -36,3 +47,19 @@ router.post('/edit/:id', auth, postSchema, async (req, res) => {
     await post.save();
     res.json(post.toJSON())
 })
+
+router.post('/delete/:id', auth, async (req, res) => {
+    const ret = await ejwt.get();
+    var post = null;
+    try {
+        post = await Post.findById(req.params.id);
+    } catch (err) {
+        return res.status(404).json({ message: "post not found" });
+    }
+    if (!post) return res.status(404).json({ message: "post not found" });
+    if (post.user_id != ret.user_id) return res.status(401).json({ message: "unauthorized" });
+    await post.remove();
+    res.json({ message: "post deleted" })
+})
+
+module.exports = router;

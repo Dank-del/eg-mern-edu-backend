@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const users = require('./routes/account');
+const { userRouter } = require('./routes/account');
+const blogs = require('./routes/blog');
 const cookieparser = require('cookie-parser') //necessary for web apps (by default it stored in cookie on client side)  . for mobile apps you can get token via json result
 const app = express();
 const dotenv = require('dotenv');
@@ -21,7 +22,8 @@ mongoose.connect(process.env.MONGO_URI, {
     .then(() => console.log('Connection is established'))
     .catch(err => console.error(err));
 
-app.use('/api/accounts', users);
+app.use('/api/accounts', userRouter);
+app.use('/api/blogs', blogs);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log("Server is running in PORT " + port));
