@@ -24,6 +24,11 @@ const postSchema = new mongoose.Schema({
         default: Date.now,
         required: false
     },
+    approved: {
+        type: Boolean,
+        default: false,
+        required: false
+    },
     liked_by : [
         {type: mongoose.Schema.Types.ObjectId,ref:'Post'}
     ]
