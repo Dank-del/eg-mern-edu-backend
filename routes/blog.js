@@ -62,4 +62,36 @@ router.post('/delete/:id', auth, async (req, res) => {
     res.json({ message: "post deleted" })
 })
 
+router.post('/like/:id', auth, async (req, res) => {
+    const ret = await ejwt.get();
+    var post = null;
+    try {
+        post = await Post.findById(req.params.id);
+    } catch (err) {
+        return res.status(404).json({ message: "post not found" });
+    }
+    if (!post) return res.status(404).json({ message: "post not found" });
+    if (post.liked_by.includes(ret.user_id)) {
+        post.liked_by = post.liked_by.filter(id => id != ret.user_id);
+    } else {
+        post.liked_by.push(ret.user_id);
+    }
+    await post.save();
+    res.json(post.toJSON());
+})
+
+router.post('/removelike/:id', auth, async (req, res) => {
+    const ret = await ejwt.get();
+    var post = null;
+    try {
+        post = await Post.findById(req.params.id);
+    } catch (err) {
+        return res.status(404).json({ message: "post not found" });
+    }
+    if (!post) return res.status(404).json({ message: "post not found" });
+    post.liked_by = post.liked_by.filter(id => id != ret.user_id);
+    await post.save();
+    res.json(post.toJSON());
+})
+
 module.exports = router;
