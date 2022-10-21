@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const Joi = require('joi');
 
 const postSchema = new mongoose.Schema({
+    image: {
+        type: String,
+        required: true,
+    },
     title: {
         type: String,
         required: true,
@@ -45,5 +49,6 @@ exports.postSchema = Joi.object(
         content: Joi.string()
             .required()
             .min(6),
+        image: Joi.string().required()
     }
 );

@@ -3,6 +3,7 @@ const router = express.Router();
 const { ejwt, auth } = require('../utils/auth');
 const { Post, postSchema } = require('../models/post');
 const { validator } = require('./account');
+// const { User } = require('../models/user');
 
 router.get('/', async (req, res) => {
     const posts = await Post.find({});
@@ -25,9 +26,13 @@ router.post('/new', auth, validator.body(postSchema), async (req, res) => {
     const post = new Post({
         title: req.body.title,
         content: req.body.content,
-        user_id: ret.user_id
+        user_id: ret.user_id,
+        image : req.body.image
     });
     await post.save();
+    // const user = await User.findById(ret.user_id);
+    // user.posts.push(post._id);
+    // await user.save();
     res.json(post.toJSON())
 })
 
@@ -43,6 +48,7 @@ router.post('/edit/:id', auth, validator.body(postSchema), async (req, res) => {
     if (post.user_id != ret.user_id) return res.status(401).json({ message: "unauthorized" });
     post.title = req.body.title;
     post.content = req.body.content;
+    post.image = req.body.image;
     post.updated_at = Date.now();
     await post.save();
     res.json(post.toJSON())
@@ -58,6 +64,9 @@ router.post('/delete/:id', auth, async (req, res) => {
     }
     if (!post) return res.status(404).json({ message: "post not found" });
     if (post.user_id != ret.user_id) return res.status(401).json({ message: "unauthorized" });
+    // const user = await User.findById(ret.user_id);
+    // user.posts = user.posts.filter(id => id != post._id);
+    // await user.save();
     await post.remove();
     res.json({ message: "post deleted" })
 })
