@@ -3,7 +3,7 @@ const router = express.Router();
 const { ejwt, auth } = require('../utils/auth');
 const { Post, postSchema } = require('../models/post');
 const { validator } = require('./account');
-// const { User } = require('../models/user');
+const { User } = require('../models/user');
 
 router.get('/', async (req, res) => {
     const posts = await Post.find({});
@@ -99,6 +99,22 @@ router.post('/removelike/:id', auth, async (req, res) => {
     }
     if (!post) return res.status(404).json({ message: "post not found" });
     post.liked_by = post.liked_by.filter(id => id != ret.user_id);
+    await post.save();
+    res.json(post.toJSON());
+})
+
+router.post('/approve/:id', auth, async (req, res) => {
+    const ret = await ejwt.get();
+    var post = null;
+    try {
+        post = await Post.findById(req.params.id);
+    } catch (err) {
+        return res.status(404).json({ message: "post not found" });
+    }
+    if (!post) return res.status(404).json({ message: "post not found" });
+    const user = await User.findById(ret.user_id);
+    if (!user.admin) return res.status(401).json({ message: "unauthorized" });
+    post.approved = true;
     await post.save();
     res.json(post.toJSON());
 })
