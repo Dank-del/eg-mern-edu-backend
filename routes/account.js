@@ -6,7 +6,9 @@ const validator = require('express-joi-validation').createValidator({})
 const { ejwt, auth } = require('../utils/auth');
 
 router.post('/signup', validator.body(signupSchema), async (req, res) => {
-    let user = await User.findOne({ email: req.body.email });
+    var user = await User.findOne({ email: req.body.email });
+    if (user) return res.status(400).json({ message: "user exists already" })
+    user = await User.findOne({ username: req.body.username });
     if (user) return res.status(400).json({ message: "user exists already" })
     var admin = null;
     if (req.body.master_key) {
@@ -51,10 +53,9 @@ router.get('/me', auth, async (req, res) => {
     if (!user) return res.status(404).json({ message: "user not found" });
     delete user.password;
     const posts = await Post.find({ user_id: ret.user_id });
-    res.json({
-        user: user.toJSON(),
-        posts: posts.map(post => post.toJSON())
-    })
+    const data = user.toJSON();
+    data.posts = posts.map(post => post.toJSON());
+    res.json(data)
 })
 
 router.get('/logout', auth, async (req, res) => {
