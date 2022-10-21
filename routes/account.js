@@ -1,4 +1,5 @@
 const express = require('express');
+const { Post } = require('../models/post');
 const router = express.Router();
 const { User, signupSchema, loginSchema } = require('../models/user');
 const validator = require('express-joi-validation').createValidator({})
@@ -41,6 +42,18 @@ router.post('/login', validator.body(loginSchema), async (req, res) => {
         //bellow `token,csrf_token` required for mobile app clients but it no need in web apps
         token: ejwt.token,
         csrf_token: ejwt.data.csrf_token
+    })
+})
+
+router.get('/me', auth, async (req, res) => {
+    const ret = await ejwt.get();
+    const user = await User.findById(ret.user_id)
+    if (!user) return res.status(404).json({ message: "user not found" });
+    delete user.password;
+    const posts = await Post.find({ user_id: ret.user_id });
+    res.json({
+        user: user.toJSON(),
+        posts: posts.map(post => post.toJSON())
     })
 })
 
