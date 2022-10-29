@@ -4,6 +4,9 @@ const router = express.Router();
 const { User, signupSchema, loginSchema } = require('../models/user');
 const validator = require('express-joi-validation').createValidator({})
 const { ejwt, auth } = require('../utils/auth');
+const hashIt = require('../utils/hash');
+const _ = require("lodash");
+const { compare } = require('bcrypt');
 
 router.post('/signup', validator.body(signupSchema), async (req, res) => {
     var user = await User.findOne({ email: req.body.email });
@@ -16,23 +19,30 @@ router.post('/signup', validator.body(signupSchema), async (req, res) => {
         admin = req.body.admin;
     }
 
+    const hashedPwd = await hashIt(req.body.password);
+
     user = new User({
         name: req.body.name,
         email: req.body.email,
         username: req.body.username,
         phone: req.body.phone,
-        password: req.body.password,
+        password: hashedPwd,
         admin: admin
     });
     await user.save();
 
-    delete user.password;
-    res.json(user.toJSON())
+    const response = _.pick(user.toJSON(), [
+        'name', 'email', 'username', 'phone', 'admin'
+    ])
+    res.json(response)
 })
 
 router.post('/login', validator.body(loginSchema), async (req, res) => {
     let user = await User.findOne({ email: req.body.email })
     if (!user) return res.status(404).json({ message: "user not found" });
+
+    const isOk = await compare(req.body.password, user.password);
+    if (!isOk) { return res.status(404).json({ message: "wrong password" }) }
 
     await ejwt.set({
         loggedin: true,

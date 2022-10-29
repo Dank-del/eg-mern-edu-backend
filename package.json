@@ -11,12 +11,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
     "express": "^4.18.1",
     "express-joi-validation": "^5.0.1",
     "express-jwt-enhanced": "^1.2.4",
     "joi": "^17.6.0",
+    "lodash": "^4.17.21",
     "mongoose": "^6.5.4"
   },
   "devDependencies": {
