@@ -47,7 +47,7 @@ exports.signupSchema = Joi.object(
         phone: Joi.number().required(),
         admin: Joi.bool()
             .default(false),
-        master_key: Joi.string().optional()
+        masterKey: Joi.string().optional()
     }
 );
 

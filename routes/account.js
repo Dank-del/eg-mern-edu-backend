@@ -3,7 +3,8 @@ const { Post } = require('../models/post');
 const router = express.Router();
 const { User, signupSchema, loginSchema } = require('../models/user');
 const validator = require('express-joi-validation').createValidator({})
-const { ejwt, auth } = require('../utils/auth');
+const jwt = require('jsonwebtoken');
+const { auth } = require('../utils/auth');
 const hashIt = require('../utils/hash');
 const _ = require("lodash");
 const { compare } = require('bcrypt');
@@ -39,39 +40,38 @@ router.post('/signup', validator.body(signupSchema), async (req, res) => {
 
 router.post('/login', validator.body(loginSchema), async (req, res) => {
     let user = await User.findOne({ email: req.body.email })
-    if (!user) return res.status(404).json({ message: "user not found" });
+    if (!user) return res.status(404).json({ message: "user not found", ok: false });
 
     const isOk = await compare(req.body.password, user.password);
-    if (!isOk) { return res.status(404).json({ message: "wrong password" }) }
+    if (!isOk) { return res.status(404).json({ message: "wrong password", ok: false }) }
 
-    await ejwt.set({
-        loggedin: true,
-        user_id: user.id
-    });
+    // await ejwt.set({
+    //     loggedin: true,
+    //     user_id: user.id
+    // });
+
+    const token = jwt.sign({
+        user_id: user.id,
+        admin: user.admin,
+        loggedin: true
+    }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.json({
+        ok: true,
         message: 'login successful',
-        //bellow `token,csrf_token` required for mobile app clients but it no need in web apps
-        token: ejwt.token,
-        csrf_token: ejwt.data.csrf_token
+        token: token,
     })
 })
 
 router.get('/me', auth, async (req, res) => {
-    const ret = await ejwt.get();
-    const user = await User.findById(ret.user_id)
-    if (!user) return res.status(404).json({ message: "user not found" });
-    delete user.password;
-    const posts = await Post.find({ user_id: ret.user_id });
-    const data = user.toJSON();
+    // console.log(req);
+    if (!req.user) return res.status(404).json({ message: "user not found" });
+    delete req.user.password;
+    const posts = await Post.find({ user_id: req.user._id });
+    const data = req.user.toJSON();
     data.posts = posts.map(post => post.toJSON());
     res.json(data)
 })
-
-router.get('/logout', auth, async (req, res) => {
-    await ejwt.unset();
-    res.json({ message: 'logout successful' });
-});
 
 exports.userRouter = router;
 exports.validator = validator;

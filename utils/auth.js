@@ -1,21 +1,23 @@
-const ejwtOptions = {
-    expire: 3600,           // alive for seconds
-    secret: process.env.JWT_SECRET,       // importat!!!! : change it
-    sec_cookie: false,      // if true only pass on https. on develop dont set it to true
-
-    use_redis: false,      // use redis or not
-
-}
-
-const ejwt = require('express-jwt-enhanced')(ejwtOptions);
+const jwt = require('jsonwebtoken');
+const { User } = require('../models/user');
 
 //auth middleware
-async function auth(req,res,next){
-    var ret = await ejwt.get();
-    // console.log(ret);
-    ret && ret.loggedin ? next() : res.json({err:'auth failed'})
+async function auth(req, res, next) {
+    console.log(req.headers['authorization'].replace('Bearer: ', ''));
+    try {
+        const jwtpld = jwt.verify(
+            req.headers['authorization'].replace('Bearer: ', ''),
+            process.env.JWT_SECRET,
+        )
+        console.log(jwtpld);
+        if (jwtpld.loggedin) {
+            req.user = (await User.findById(jwtpld.user_id));
+            next();
+        }
+    }
+    catch (err) {
+        res.status(401).json(err)
+    }
 }
 
-exports.ejwtOptions = ejwtOptions;
-exports.ejwt = ejwt;
 exports.auth = auth;
