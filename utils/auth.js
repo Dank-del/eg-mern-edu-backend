@@ -3,7 +3,7 @@ const { User } = require('../models/user');
 
 //auth middleware
 async function auth(req, res, next) {
-    console.log(req.headers['authorization'].replace('Bearer: ', ''));
+    // console.log(req.headers['authorization'].replace('Bearer: ', ''));
     try {
         const jwtpld = jwt.verify(
             req.headers['authorization'].replace('Bearer: ', ''),

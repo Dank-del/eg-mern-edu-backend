@@ -10,7 +10,9 @@ const cors = require('cors');
 
 app.use(cors());
 app.use(cookieparser())          //necessry for parsing token cookie
-    .use(express.json())          //necessary for parsing application/json
+    .use(express.json({
+        limit: '50mb'
+    }))          //necessary for parsing application/json
     .use(express.urlencoded({ extended: false }))  //necessary for parsing application/x-www-form-urlencoded
 
 // app.all("/*", function (req, res, next) {

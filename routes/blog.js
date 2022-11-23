@@ -93,7 +93,7 @@ router.post('/removelike/:id', auth, async (req, res) => {
         return res.status(404).json({ message: "post not found" });
     }
     if (!post) return res.status(404).json({ message: "post not found" });
-    post.liked_by = post.liked_by.filter(id => id != req.user._id);
+    post.liked_by = post.liked_by.filter(id => id === req.user._id);
     await post.save();
     res.json(post.toJSON());
 })

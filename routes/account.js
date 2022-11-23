@@ -73,5 +73,13 @@ router.get('/me', auth, async (req, res) => {
     res.json(data)
 })
 
+router.get('/user/:id', async (req, res) => {
+    // if (!req.user) return res.status(404).json({ message: "not logged in" });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "user not found" });
+    delete user.password;
+    res.json(user.toJSON());
+})
+
 exports.userRouter = router;
 exports.validator = validator;
