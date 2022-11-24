@@ -4,10 +4,27 @@ const { auth } = require('../utils/auth');
 const { Post, postSchema } = require('../models/post');
 const { validator } = require('./account');
 const { User } = require('../models/user');
+const jwt = require('jsonwebtoken');
 
 router.get('/', async (req, res) => {
-    const posts = await Post.find({});
-    res.json(posts.map(post => post.toJSON()));
+    const token = req.headers['authorization']?.replace('Bearer: ', '')
+    try {
+        const jwtpld = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(jwtpld);
+        if (jwtpld.admin) {
+            const posts = await Post.find({});
+            return res.json(posts);
+        }
+        const posts = await Post.find({
+            approved: true
+        });
+        return res.json(posts.map(post => post.toJSON()));
+    } catch (err) {
+        const posts = await Post.find({
+            approved: true
+        });
+        return res.json(posts.map(post => post.toJSON()));
+    }
 });
 
 router.get('/:id', async (req, res) => {
@@ -26,7 +43,7 @@ router.post('/new', auth, validator.body(postSchema), async (req, res) => {
         title: req.body.title,
         content: req.body.content,
         user_id: req.user._id,
-        image : req.body.image
+        image: req.body.image
     });
     await post.save();
     // const user = await User.findById(ret.user_id);
@@ -112,5 +129,20 @@ router.post('/approve/:id', auth, async (req, res) => {
     await post.save();
     res.json(post.toJSON());
 })
+
+router.post('/unapprove/:id', auth, async (req, res) => {
+    var post = null;
+    try {
+        post = await Post.findById(req.params.id);
+    } catch (err) {
+        return res.status(404).json({ message: "post not found" });
+    }
+    if (!post) return res.status(404).json({ message: "post not found" });
+    const user = await User.findById(req.user._id);
+    if (!user.admin) return res.status(401).json({ message: "unauthorized" });
+    post.approved = false;
+    await post.save();
+    res.json(post.toJSON());
+});
 
 module.exports = router;

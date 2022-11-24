@@ -9,7 +9,7 @@ async function auth(req, res, next) {
             req.headers['authorization'].replace('Bearer: ', ''),
             process.env.JWT_SECRET,
         )
-        console.log(jwtpld);
+        // console.log(jwtpld);
         if (jwtpld.loggedin) {
             req.user = (await User.findById(jwtpld.user_id));
             next();
